@@ -1,16 +1,14 @@
 from sqlalchemy.orm import Session
 
-
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
-
 
 from core.prompts import STORY_PROMPT
 from models.story import Story, StoryNode
 from core.models import StoryLLMResponse, StoryNodeLLM
 from dotenv import load_dotenv
-
+import os
 
 load_dotenv()
 
@@ -18,7 +16,13 @@ class StoryGenerator:
 
     @classmethod
     def _get_llm(cls):
-      return ChatOpenAI(model="gpt-4-turbo")
+        openai_api_key = os.getenv("CHOREO_OPENAI_CONNECTION_OPENAI_API_KEY")
+        serviceurl = os.getenv("CHOREO_OPENAI_CONNECTION_SERVICEURL")
+
+        if openai_api_key and serviceurl:
+            return ChatOpenAI(model="gpt-4o-mini", api_key=openai_api_key, base_url=serviceurl)
+
+        return ChatOpenAI(model="gpt-4o-mini")
 
     @classmethod
     def generate_story(cls, db: Session, session_id: str, theme: str = "fantasy")-> Story:
